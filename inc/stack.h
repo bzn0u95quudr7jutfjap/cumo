@@ -10,6 +10,8 @@
   { .data = NULL, .size = 0, .capacity = 0 }
 
 #define declare_template_stack_type(type, stack_type)                          \
+  typedef void (*fn_read_##stack_type)(type *, FILE *);                        \
+  typedef void (*fn_write_##stack_type)(type *, FILE *);                       \
   typedef struct stack_type stack_type;                                        \
   struct stack_type {                                                          \
     type *data;                                                                \
@@ -21,8 +23,8 @@
   void push_##stack_type(stack_type *, type);                                  \
   void pop_##stack_type(stack_type *);                                         \
   void resize_##stack_type(stack_type *, size_t);                              \
-  void fread_##stack_type(stack_type *, void *db);                             \
-  void fwrite_##stack_type(stack_type *, void *db);                            \
+  void fread_##stack_type(stack_type *, fn_read_##stack_type, FILE *db);       \
+  void fwrite_##stack_type(stack_type *, fn_write_##stack_type, FILE *db);     \
   type *at_##stack_type(stack_type *, size_t);
 
 #define define_template_stack_type(type, stack_type)                           \
@@ -52,14 +54,21 @@
     stack->data = realloc(stack->data, stack->capacity * sizeof(type));        \
   }                                                                            \
                                                                                \
-  void fread_##stack_type(stack_type *stack, void *db) {                       \
-    return;                                                                    \
-    return;                                                                    \
+  void fread_##stack_type(stack_type *stack, fn_read_##stack_type fn,          \
+                          FILE *db) {                                          \
+    fread(stack->size, sizeof(stack->size), 1, db);                            \
+    resize_##stack_type(stack, stack->size);                                   \
+    for (size_t i = 0; i < stack->size; i++) {                                 \
+      fn(at_##stack_type(stack, i), db);                                       \
+    }                                                                          \
   }                                                                            \
                                                                                \
-  void fwrite_##stack_type() {                                                 \
-    return;                                                                    \
-    return;                                                                    \
+  void fwrite_##stack_type(stack_type *stack, fn_write_##stack_type fn,        \
+                           FILE *db) {                                         \
+    fwrite(stack->size, sizeof(stack->size), 1, db);                           \
+    for (size_t i = 0; i < stack->size; i++) {                                 \
+      fn(at_##stack_type(stack, i), db);                                       \
+    }                                                                          \
   }                                                                            \
                                                                                \
   type *at_##stack_type(stack_type *stack, size_t i) {                         \
