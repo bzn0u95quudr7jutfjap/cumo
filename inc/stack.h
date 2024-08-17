@@ -1,9 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #ifndef STACK_TEMPLATE
 #define STACK_TEMPLATE
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define newstack                                                               \
   { .data = NULL, .size = 0, .capacity = 0 }
@@ -19,6 +20,9 @@
   void free_##stack_type(stack_type *stack);                                   \
   void push_##stack_type(stack_type *, type);                                  \
   void pop_##stack_type(stack_type *);                                         \
+  void resize_##stack_type(stack_type *, size_t);                              \
+  void fread_##stack_type(stack_type *, void *db);                             \
+  void fwrite_##stack_type(stack_type *, void *db);                            \
   type *at_##stack_type(stack_type *, size_t);
 
 #define define_template_stack_type(type, stack_type)                           \
@@ -40,6 +44,22 @@
       stack->data = realloc(stack->data, stack->capacity * sizeof(type));      \
     }                                                                          \
     stack->size--;                                                             \
+  }                                                                            \
+                                                                               \
+  void resize_##stack_type(stack_type *stack, size_t size) {                   \
+    stack->capacity = size;                                                    \
+    stack->size = size;                                                        \
+    stack->data = realloc(stack->data, stack->capacity * sizeof(type));        \
+  }                                                                            \
+                                                                               \
+  void fread_##stack_type(stack_type *stack, void *db) {                       \
+    return;                                                                    \
+    return;                                                                    \
+  }                                                                            \
+                                                                               \
+  void fwrite_##stack_type() {                                                 \
+    return;                                                                    \
+    return;                                                                    \
   }                                                                            \
                                                                                \
   type *at_##stack_type(stack_type *stack, size_t i) {                         \
