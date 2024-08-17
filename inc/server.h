@@ -1,8 +1,8 @@
 #ifndef __CUMO_SERVER__
 #define __CUMO_SERVER__
 
-#include <types.h>
 #include <stack.h>
+#include <types.h>
 
 typedef struct {
   u32 id;

@@ -8,7 +8,7 @@ typedef struct {
   stack_string paths;
 } server_state;
 
-server_state state = {.next_id = 0, .metadata = newstack, .paths = newstack};
+server_state state = {.next_id = 0, .metadata = new_stack, .paths = new_stack};
 
 u32 next_id;
 u32 files_count;
