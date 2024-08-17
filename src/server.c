@@ -19,14 +19,22 @@ typedef struct {
 
 server_state state = {};
 
-void fread_char(char *c, FILE *db) { fread(c, sizeof(*c), 1, db); }
-
 void fread_metadata(metadata *md, FILE *db) {
   fread(&(md->id), sizeof(md->id), 1, db);
-  fread_string(&(md->path), fread_char, db);
+  fread(md->path.data, sizeof(*(md->path.data)), md->path.size, db);
 }
 
 void fread_server_state(FILE *db) {
   fread(&(state.autoincrement), sizeof(state.autoincrement), 1, db);
   fread_stack_metadata(&(state.files), fread_metadata, db);
+}
+
+void fwrite_metadata(metadata *md, FILE *db) {
+  fwrite(&(md->id), sizeof(md->id), 1, db);
+  fwrite(md->path.data, sizeof(*(md->path.data)), md->path.size, db);
+}
+
+void fwrite_server_state(FILE *db) {
+  fread(&(state.autoincrement), sizeof(state.autoincrement), 1, db);
+  fwrite_stack_metadata(&(state.files), fwrite_metadata, db);
 }
