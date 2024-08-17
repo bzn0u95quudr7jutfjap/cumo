@@ -5,11 +5,10 @@
 typedef struct {
   u32 next_id;
   stack_metadata metadata;
-  stack_string filepaths;
+  stack_string paths;
 } server_state;
 
-server_state state = {
-    .next_id = 0, .metadata = newstack, .filepaths = newstack};
+server_state state = {.next_id = 0, .metadata = newstack, .paths = newstack};
 
 u32 next_id;
 u32 files_count;
@@ -20,16 +19,39 @@ char **files_names = NULL;
 
 u0 read_database(FILE *db) {
   fseek(db, 0, SEEK_SET);
-  fread(&next_id, sizeof(next_id), 1, db);
-  fread(&files_count, sizeof(files_count), 1, db);
-  files_metadata = malloc(sizeof(*files_metadata) * files_count);
-  fread(&files_metadata, sizeof(*files_metadata), files_count, db);
-  files_names = malloc(sizeof(*files_names) * files_count);
-  for (u32 i = 0; i < files_count; i++) {
-    u32 len = files_metadata[i].path_len;
-    u32 sizeofchar = sizeof(*(files_names[i]));
-    files_names[i] = malloc(sizeofchar * len);
-    fread(files_names[i], sizeofchar, len, db);
+  u32 next = 0, count = 0;
+  fread(&next, sizeof(next), 1, db);
+  fread(&count, sizeof(count), 1, db);
+
+  state.next_id = next;
+  resize_stack_metadata(&(state.metadata), count);
+  resize_stack_string(&(state.paths), count);
+
+  metadata *data = state.metadata.data;
+  fread(data, sizeof(*data), count, db);
+
+  for (u32 i = 0; i < count; i++) {
+    u32 len = data[i].path_len;
+    string *name = at_stack_string(&(state.paths), i);
+    resize_string(name, len);
+    fread(name->data, sizeof(*(name->data)), len, db);
+  }
+}
+
+u0 write_database(FILE *db) {
+  fseek(db, 0, SEEK_SET);
+  u32 next = state.next_id, count = state.metadata.size;
+  for (u32 i = 0; i < count; i++) {
+    at_stack_metadata(&(state.metadata), i)->path_len =
+        at_stack_string(&(state.paths), i)->size;
+  }
+  fwrite(&next, sizeof(next), 1, db);
+  fwrite(&count, sizeof(count), 1, db);
+  stack_metadata *data = &(state.metadata);
+  fwrite(data->data, sizeof(*(data->data)), count, db);
+  for (u32 i = 0; i < count; i++) {
+    string *name = at_stack_string(&(state.paths), i);
+    fwrite(name->data, sizeof(*(name->data)), name->size, db);
   }
 }
 
