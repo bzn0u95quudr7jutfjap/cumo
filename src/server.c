@@ -38,3 +38,27 @@ void fwrite_server_state(FILE *db) {
   fread(&(state.autoincrement), sizeof(state.autoincrement), 1, db);
   fwrite_stack_metadata(&(state.files), fwrite_metadata, db);
 }
+
+void save_server_state() {
+  FILE *db = fopen("database.bin", "wb");
+  if (db == NULL) {
+    goto exit;
+  }
+
+  fwrite_server_state(db);
+
+exit:
+  fclose(db);
+}
+
+void init_server_state() {
+  FILE *db = fopen("database.bin", "rb");
+  if (db == NULL) {
+    goto exit;
+  }
+
+  fread_server_state(db);
+
+exit:
+  fclose(db);
+}
