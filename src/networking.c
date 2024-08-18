@@ -1,96 +1,59 @@
-#include <stdio.h> 
-#include <netdb.h> 
-#include <netinet/in.h> 
-#include <stdlib.h> 
-#include <string.h> 
-#include <sys/socket.h> 
-#include <sys/types.h> 
+#include "types.h"
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h> // read(), write(), close()
-#define MAX 80 
-#define PORT 8080 
-#define SA struct sockaddr 
 
-// Function designed for chat between client and server. 
-void func(int connfd) 
-{ 
-	char buff[MAX]; 
-	int n; 
-	// infinite loop for chat 
-	for (;;) { 
-		bzero(buff, MAX); 
+#include "cumo.h"
 
-		// read the message from client and copy it in buffer 
-		read(connfd, buff, sizeof(buff)); 
-		// print buffer which contains the client contents 
-		printf("From client: %s\t To client : ", buff); 
-		bzero(buff, MAX); 
-		n = 0; 
-		// copy server message in the buffer 
-		while ((buff[n++] = getchar()) != '\n') 
-			; 
+struct socket_type {
+  i32 descriptor;
+  union {
+    struct sockaddr_in _addr;
+    struct sockaddr addr;
+  };
+  u32 addr_len;
+};
 
-		// and send that buffer to client 
-		write(connfd, buff, sizeof(buff)); 
-
-		// if msg contains "Exit" then server exit and chat ended. 
-		if (strncmp("exit", buff, 4) == 0) { 
-			printf("Server Exit...\n"); 
-			break; 
-		} 
-	} 
-} 
-
-// Driver function 
-int main() 
-{ 
-	int sockfd, connfd, len; 
-	struct sockaddr_in servaddr, cli; 
-
-	// socket create and verification 
-	sockfd = socket(AF_INET, SOCK_STREAM, 0); 
-	if (sockfd == -1) { 
-		printf("socket creation failed...\n"); 
-		exit(0); 
-	} 
-	else
-		printf("Socket successfully created..\n"); 
-	bzero(&servaddr, sizeof(servaddr)); 
-
-	// assign IP, PORT 
-	servaddr.sin_family = AF_INET; 
-	servaddr.sin_addr.s_addr = htonl(INADDR_ANY); 
-	servaddr.sin_port = htons(PORT); 
-
-	// Binding newly created socket to given IP and verification 
-	if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) { 
-		printf("socket bind failed...\n"); 
-		exit(0); 
-	} 
-	else
-		printf("Socket successfully binded..\n"); 
-
-	// Now server is ready to listen and verification 
-	if ((listen(sockfd, 5)) != 0) { 
-		printf("Listen failed...\n"); 
-		exit(0); 
-	} 
-	else
-		printf("Server listening..\n"); 
-	len = sizeof(cli); 
-
-	// Accept the data packet from client and verification 
-	connfd = accept(sockfd, (SA*)&cli, &len); 
-	if (connfd < 0) { 
-		printf("server accept failed...\n"); 
-		exit(0); 
-	} 
-	else
-		printf("server accept the client...\n"); 
-
-	// Function for chatting between client and server 
-	func(connfd); 
-
-	// After chatting close the socket 
-	close(sockfd); 
+socket_type socket_cumo(u32 domain, u32 type, u32 protocol) {
+  i32 sock = socket(domain, type, protocol);
+  if (sock == -1) {
+    exit(1);
+  }
+  return (socket_type){.descriptor = sock, ._addr = {.sin_family = domain}};
 }
 
+u0 bind_cumo(socket_type *sock, u32 addr, u32 port) {
+  sock->_addr.sin_addr.s_addr = htonl(addr);
+  sock->_addr.sin_port = htons(port);
+  if (bind(sock->descriptor, &(sock->addr), sizeof(sock->addr)) != 0) {
+    exit(2);
+  }
+}
+
+u0 listen_cumo(socket_type *sock, u32 nconnection) {
+  if (listen(sock->descriptor, nconnection) != 0) {
+    exit(3);
+  }
+}
+
+socket_type accept_cumo(socket_type *sock) {
+  socket_type conn = {};
+  conn.addr_len = sizeof(conn.addr);
+  conn.descriptor = accept(sock->descriptor, &(conn.addr), &(conn.addr_len));
+  return conn;
+}
+
+u0 socket_functor_cumo(u32 d, u32 t, u32 p, socket_fn fn, void *a) {
+  socket_type sock = socket_cumo(d, t, p);
+  (u0) fn(&sock, a);
+  close(sock.descriptor);
+}
+
+u0 accept_functor_cumo(socket_type *sock, socket_fn fn, void *a) {
+  socket_type conn = accept_cumo(sock);
+  (u0) fn(&conn, a);
+  close(conn.descriptor);
+}
