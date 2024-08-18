@@ -4,6 +4,7 @@ project(cumo)
 set(sources
   src/server.c
   src/client.c
+  src/cumo_sockets.c
 )
 
 include_directories(inc/)
