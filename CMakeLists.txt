@@ -3,6 +3,7 @@ project(cumo)
 
 set(sources
   src/server.c
+  src/client.c
 )
 
 include_directories(inc/)
