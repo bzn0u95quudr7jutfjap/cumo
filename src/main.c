@@ -16,10 +16,10 @@ int main(int argc, char *argv[]) {
   }
 
   if (strcmp(argv[1], "--server") == 0) {
-    main_server();
+    socket_functor_cumo_af_inet_sock_stream(server_main, NULL);
   }
 
   if (strcmp(argv[1], "--client") == 0) {
-    main_client();
+    socket_functor_cumo_af_inet_sock_stream(client_main, NULL);
   }
 }

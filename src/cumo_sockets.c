@@ -57,3 +57,7 @@ u0 accept_functor_cumo(socket_type *sock, socket_fn fn, void *a) {
   (u0) fn(&conn, a);
   close(conn.descriptor);
 }
+
+u0 socket_functor_cumo_af_inet_sock_stream(socket_fn fn, void *a) {
+  socket_functor_cumo(AF_INET, SOCK_STREAM, 0, fn, a);
+}
