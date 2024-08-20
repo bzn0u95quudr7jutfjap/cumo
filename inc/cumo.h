@@ -12,6 +12,9 @@ u0 bind_cumo(socket_type *sock, u32 addr, u32 port);
 u0 listen_cumo(socket_type *sock, u32 nconnection);
 u0 accept_functor_cumo(socket_type *sock, socket_fn fn, void *a);
 
+u0 read_cumo(socket_type *sock, u0 *bf, u32 size, u32 n_items);
+u0 write_cumo(socket_type *sock, u0 *bf, u32 size, u32 n_items);
+
 u0 *server_main(socket_type *, u0 *);
 u0 *client_main(socket_type *, u0 *);
 
