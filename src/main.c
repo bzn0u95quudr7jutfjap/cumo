@@ -3,6 +3,8 @@
 #include "string.h"
 #include "types.h"
 
+u0 *client_main(socket_type *_, u0 *__) { return NULL; }
+
 char *_validarguments = "modalità di utilizzo\n";
 char *_clientmode = "--client <ip> <port>\n";
 char *_servermode = "--server <ip> <port>\n";
